@@ -1,0 +1,16 @@
+# JWT配置
+jwt:
+  #256 位（32 字节）是 HS256 的最低要求
+  secret: oXQZ8pL2+7mFv4sA9dR3tY7gH5jK1lN2oP8qR4sT6uV9wX2yB5hG8jK3mN7pQ
+  # 令牌过期时间（小时）
+  expire-hours: 24
+
+server:
+  port: 8080
+# 数据库配置
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/ticket?useUnicode=true&characterEncoding=UTF-8
+    username: root
+    password: dkb4sb!!
