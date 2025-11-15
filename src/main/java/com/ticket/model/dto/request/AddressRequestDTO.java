@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class AddressRequestDTO {
-    private String receiver;
+    private String recipient;
 
     private String phone;
 

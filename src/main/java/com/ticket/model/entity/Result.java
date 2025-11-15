@@ -20,7 +20,10 @@ public class Result<T> {
     }
 
     public static <T> Result<T> success() {
-        return success(null);
+        Result<T> result = new Result<>();
+        result.setCode(200);
+        result.setMessage("success");
+        return result;
     }
 
     public static <T> Result<T> fail(int code, String message) {

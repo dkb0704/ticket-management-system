@@ -1,6 +1,8 @@
 package com.ticket.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.ticket.exception.BusinessException;
+import com.ticket.exception.ErrorCode;
 import com.ticket.mapper.UserMapper;
 import com.ticket.model.dto.request.LoginRequestDTO;
 import com.ticket.model.dto.response.LoginResponseDTO;
@@ -52,6 +54,8 @@ public class AuthServiceImpl implements AuthService {
         else if (loginType == 2) {
             user = userMapper.selectOne(new LambdaQueryWrapper<User>()
                     .eq(User::getEmail, account));
+        }else {
+            throw new BusinessException(ErrorCode.LOGIN_TYPE_ERROR);
         }
 
         // 2. 若用户不存在，自动注册
@@ -60,16 +64,16 @@ public class AuthServiceImpl implements AuthService {
         } else {
             // 3. 验证密码（加密比对）
             if (!passwordUtil.verify(password, user.getPassword())) {
-                //todo
-                log.info("AuthServiceImpl的login方法： 密码错误");
+                throw new BusinessException(ErrorCode.PASSWORD_ERROR);
             }
         }
 
+
         // 4. 检查用户状态
         if (user.getStatus() != 1) {
-            //todo
-            log.info("AuthServiceImpl的login方法： 用户处于禁用状态");
+            throw new BusinessException(ErrorCode.USER_DISABLED);
         }
+
 
         // 5. 生成JWT令牌
         return generateLoginResponse(user);
@@ -95,8 +99,7 @@ public class AuthServiceImpl implements AuthService {
         // 保存到数据库
         int rows = userMapper.insert(user);
         if (rows <= 0) {
-            //todo
-            log.info("AuthServiceImpl的registerUser方法： 添加新用户失败");
+            throw new BusinessException(ErrorCode.USER_REGISTER_FAIL);
         }
         return generateLoginResponse(user);
     }
@@ -107,8 +110,7 @@ public class AuthServiceImpl implements AuthService {
         HttpServletRequest request = ((ServletRequestAttributes) RequestContextHolder.getRequestAttributes()).getRequest();
         String token = request.getHeader("Authorization");
         if (token == null) {
-            //todo
-            log.info("UserServiceImpl: logout失败，token不存在");
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         // 计算 Token 剩余有效期（秒）
         long remainingSeconds = jwtUtil.getRemainingSeconds(token);

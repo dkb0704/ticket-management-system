@@ -1,6 +1,10 @@
 package com.ticket.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.CollectionUtils;
+import com.ticket.exception.BusinessException;
+import com.ticket.exception.ErrorCode;
 import com.ticket.mapper.UserAddressMapper;
 import com.ticket.model.dto.request.AddressRequestDTO;
 import com.ticket.model.dto.response.AddressResponseDTO;
@@ -26,12 +30,17 @@ public class UserAddressServiceImpl implements UserAddressService {
     @Override
     public List<AddressResponseDTO> getAddressList() {
         Long userId = UserContext.getCurrentUserId();
-        List<UserAddress> addressList = addressMapper.selectByUserId(userId);
+        List<UserAddress> addressList = addressMapper.selectList(new QueryWrapper<UserAddress>().eq("user_id",userId));
+        if (CollectionUtils.isEmpty(addressList)) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
+        }
+
         return addressList.stream().map(address -> {
             AddressResponseDTO dto = new AddressResponseDTO();
             BeanUtils.copyProperties(address, dto);
             return dto;
         }).collect(Collectors.toList());
+
     }
 
     @Override
@@ -42,15 +51,24 @@ public class UserAddressServiceImpl implements UserAddressService {
         BeanUtils.copyProperties(request, address);
         address.setUserId(userId);
 
-        // 如果设置为默认地址，先取消其他地址的默认状态
-        if (request.getIsDefault() == 1) {
-            UserAddress update = new UserAddress();
-            update.setIsDefault(0);
-            addressMapper.update(update, new LambdaQueryWrapper<UserAddress>()
-                    .eq(UserAddress::getUserId, userId)
-                    .eq(UserAddress::getIsDefault, 1));
+        try {
+            // 如果设置为默认地址，先取消其他地址的默认状态
+            if (request.getIsDefault() == 1) {
+                UserAddress update = new UserAddress();
+                update.setIsDefault(0);
+                addressMapper.update(update, new LambdaQueryWrapper<UserAddress>()
+                        .eq(UserAddress::getUserId, userId)
+                        .eq(UserAddress::getIsDefault, 1));
+            }
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
         }
-        addressMapper.insert(address);
+
+        try {
+            addressMapper.insert(address);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
+        }
     }
 
     @Override
@@ -59,23 +77,31 @@ public class UserAddressServiceImpl implements UserAddressService {
         Long userId = UserContext.getCurrentUserId();
         UserAddress address = addressMapper.selectById(addressId);
         if (address == null || !address.getUserId().equals(userId)) {
-            log.info("UserAddressServiceImpl的updateAddress: 地址不存在或用户id和地址id不匹配");
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
         }
 
         BeanUtils.copyProperties(request, address);
 
-        // 如果设置为默认地址，先取消其他地址的默认状态
-        if (request.getIsDefault() == 1) {
-            UserAddress update = new UserAddress();
-            update.setIsDefault(0);
-            addressMapper.update(update, new LambdaQueryWrapper<UserAddress>()
-                    .eq(UserAddress::getUserId, userId)
-                    .eq(UserAddress::getIsDefault, 1)
-                    .ne(UserAddress::getId, addressId)); // 排除当前地址
+        try {
+            // 如果设置为默认地址，先取消其他地址的默认状态
+            if (request.getIsDefault() == 1) {
+                UserAddress update = new UserAddress();
+                update.setIsDefault(0);
+                addressMapper.update(update, new LambdaQueryWrapper<UserAddress>()
+                        .eq(UserAddress::getUserId, userId)
+                        .eq(UserAddress::getIsDefault, 1)
+                        .ne(UserAddress::getId, addressId)); // 排除当前地址
+            }
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
         }
 
 
-        addressMapper.updateById(address);
+        try {
+            addressMapper.updateById(address);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
+        }
     }
 
     @Override
@@ -83,10 +109,13 @@ public class UserAddressServiceImpl implements UserAddressService {
         Long userId = UserContext.getCurrentUserId();
         UserAddress address = addressMapper.selectById(addressId);
         if (address == null || !address.getUserId().equals(userId)) {
-            log.info("UserAddressServiceImpl的deleteAddress: 地址不存在或用户id和地址id不匹配");
-
+            throw new BusinessException(ErrorCode.ADDRESS_NOT_FOUND);
         }
 
-        addressMapper.deleteById(addressId);
+        try {
+            addressMapper.deleteById(addressId);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.ADDRESS_OPERATION_FAIL);
+        }
     }
 }

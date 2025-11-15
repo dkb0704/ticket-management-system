@@ -1,5 +1,7 @@
 package com.ticket.util;
 
+import com.ticket.exception.BusinessException;
+import com.ticket.exception.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -17,7 +19,7 @@ public class UserContext {
     public static Long getCurrentUserId() {
         Long userId = USER_ID_THREAD_LOCAL.get();
         if (userId == null) {
-            log.info("UserContext: 当前用户未登录");
+            throw new BusinessException(ErrorCode.NOT_LOGIN);
         }
         return userId;
     }

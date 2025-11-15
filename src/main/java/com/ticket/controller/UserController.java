@@ -15,12 +15,17 @@ public class UserController {
     @Resource
     private UserService userService;
 
-    //获取当前用户信息
+    /**
+     * 获取当前用户信息
+     */
     @GetMapping("/info")
     public Result<UserInfoResponseDTO> getCurrentUserInfo() {
         return Result.success(userService.getCurrentUserInfo());
     }
-    //修改个人信息
+
+    /**
+     * 修改个人信息
+     */
     @PutMapping("/info")
     public Result<Void> updateUserInfo(@RequestBody UpdateUserInfoRequestDTO request) {
         userService.updateUserInfo(request);

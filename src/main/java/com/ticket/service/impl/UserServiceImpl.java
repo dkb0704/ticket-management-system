@@ -1,5 +1,7 @@
 package com.ticket.service.impl;
 
+import com.ticket.exception.BusinessException;
+import com.ticket.exception.ErrorCode;
 import com.ticket.mapper.UserMapper;
 import com.ticket.model.dto.request.UpdateUserInfoRequestDTO;
 import com.ticket.model.dto.response.UserInfoResponseDTO;
@@ -12,6 +14,8 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.time.LocalDateTime;
+
 @Service
 @Slf4j
 public class UserServiceImpl implements UserService {
@@ -28,8 +32,7 @@ public class UserServiceImpl implements UserService {
         // 查询用户信息
         User user = userMapper.selectById(userId);
         if (user == null) {
-            //todo
-            log.info("UserServiceImpl的getCurrentUserInfo(): 用户不存在 ");
+            throw new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
         // 转换为响应DTO
         UserInfoResponseDTO response = new UserInfoResponseDTO();
@@ -42,8 +45,7 @@ public class UserServiceImpl implements UserService {
         Long userId = UserContext.getCurrentUserId();
         User user = userMapper.selectById(userId);
         if (user == null) {
-            //todo
-            log.info("UserServiceImpl的updateUserInfo(): 用户不存在 ");
+            throw  new BusinessException(ErrorCode.USER_NOT_FOUND);
         }
 
         if (request.getUsername() != null) {
@@ -58,7 +60,11 @@ public class UserServiceImpl implements UserService {
         if (request.getAvatar() != null) {
             user.setAvatar(request.getAvatar());
         }
-
-        userMapper.updateById(user);
+        user.setUpdateTime(LocalDateTime.now());
+        try {
+            userMapper.updateById(user);
+        } catch (Exception e) {
+            throw new BusinessException(ErrorCode.USER_OPERATION_FAIL);
+        }
     }
 }
