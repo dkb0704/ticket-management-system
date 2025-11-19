@@ -4,10 +4,6 @@ import lombok.Getter;
 
 /**
  * 异常码枚举：统一管理系统所有异常码
- * 规则：不同模块使用不同区间，避免冲突
- * - 认证模块：10000~19999
- * - 用户模块：20000~29999
- * - 系统通用：90000~99999
  */
 @Getter
 public enum ErrorCode {
@@ -26,7 +22,13 @@ public enum ErrorCode {
     // ===================== 用户模块 =====================
     USER_NOT_FOUND(20001, "用户不存在"),
     ADDRESS_NOT_FOUND(20002, "收货地址不存在或不属于当前用户"),
-    ADDRESS_OPERATION_FAIL(20003, "地址表操作失败");
+    ADDRESS_OPERATION_FAIL(20003, "地址表操作失败"),
+
+    // ===================== 用户模块 =====================
+    PERFORMANCE_IS_EMPTY(30001, "查询结果为空"),
+    PERFORMANCE_OPERATION_FAIL(30002, "演出表操作失败");
+
+
 
 
     /**

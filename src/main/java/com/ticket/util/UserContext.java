@@ -24,7 +24,7 @@ public class UserContext {
         return userId;
     }
 
-    //清除当前线程中的用户 ID（在请求处理完成后调用，避免内存泄漏）
+    //清除当前线程中的用户 ID
     public static void removeUserId() {
         USER_ID_THREAD_LOCAL.remove();
     }

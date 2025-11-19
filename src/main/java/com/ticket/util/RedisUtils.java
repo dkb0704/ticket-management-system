@@ -22,6 +22,7 @@ public class RedisUtils {
     public void addToBlacklist(String token, long expireSeconds) {
         String key = TOKEN_BLACKLIST_PREFIX + token;
         redisTemplate.opsForValue().set(key, "1", expireSeconds, TimeUnit.SECONDS);
+        UserContext.removeUserId();
     }
 
     //检查 Token 是否在黑名单中
