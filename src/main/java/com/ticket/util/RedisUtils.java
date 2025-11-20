@@ -30,4 +30,25 @@ public class RedisUtils {
         String key = TOKEN_BLACKLIST_PREFIX + token;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
     }
+    public boolean exists(String key) {
+        return redisTemplate.hasKey(key);
+    }
+    public void set(String key, Object value) {
+        redisTemplate.opsForValue().set(key, value);
+    }
+    public void set(String key, Object value,Integer expireSeconds, TimeUnit timeUnit) {
+        redisTemplate.opsForValue().set(key, value, expireSeconds, timeUnit);
+    }
+    public Long decrBy(String key, Integer count) {
+        return redisTemplate.opsForValue().decrement(key, count);
+    }
+    public Long incrBy(String key, Integer count) {
+        return redisTemplate.opsForValue().increment(key, count);
+    }
+    public Boolean tryLock(String key, Integer expireSeconds, TimeUnit timeUnit) {
+        return redisTemplate.opsForValue().setIfAbsent(key, "1", expireSeconds, timeUnit);
+    }
+    public Boolean unlock(String key) {
+        return redisTemplate.delete(key);
+    }
 }

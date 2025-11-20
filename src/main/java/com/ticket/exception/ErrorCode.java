@@ -25,8 +25,18 @@ public enum ErrorCode {
     ADDRESS_OPERATION_FAIL(20003, "地址表操作失败"),
 
     // ===================== 用户模块 =====================
-    PERFORMANCE_IS_EMPTY(30001, "查询结果为空"),
+    PERFORMANCE_IS_EMPTY(30001, "演出查询结果为空"),
     PERFORMANCE_OPERATION_FAIL(30002, "演出表操作失败"),
+    PERFORMANCE_SESSION_IS_EMPTY(30003, "演出场次查询结果为空"),
+    PERFORMANCE_NOT_ON_SALE(30004, "演出还未开始售票"),
+    SESSION_NOT_VALID(30005, "该场次和演出不匹配"),
+    SESSION_NOT_ON_SALE(30006, "该场次还未开始售票"),
+    TICKET_GRADE_NOT_VALID(30007, "该票和场次不匹配"),
+    TICKET_COUNT_EXCEED_LIMIT(30008, "超出最大购票数量"),
+    TICKET_STOCK_INSUFFICIENT(30009, "票库存不足"),
+    REPEAT_GRAB_TICKET(30010, "禁止重复购票"),
+    GRAB_TICKET_FAIL_RETRY(30011, "购票失败，请重试"),
+
 
 
     // ===================== 工具模块 =====================

@@ -10,5 +10,5 @@ public class TicketGradeDetailDTO {
     private Long id;
     private String gradeName;
     private BigDecimal price;
-    private Integer stock;
+    private Boolean hasStock;
 }
