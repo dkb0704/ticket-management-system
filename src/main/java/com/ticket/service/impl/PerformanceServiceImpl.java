@@ -14,11 +14,13 @@ import com.ticket.model.dto.request.GrabTicketRequestDTO;
 import com.ticket.model.dto.response.PerformanceDetailResponseDTO;
 import com.ticket.model.dto.response.PerformancePageResponseDTO;
 import com.ticket.model.dto.request.PerformanceQueryRequestDTO;
+import com.ticket.model.dto.response.SessionDetailDTO;
 import com.ticket.model.entity.Performance;
 import com.ticket.model.entity.PerformanceCategory;
 import com.ticket.model.entity.Region;
 import com.ticket.service.PerformanceService;
 import com.ticket.util.IpUtils;
+import com.ticket.util.UserContext;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -43,32 +45,32 @@ public class PerformanceServiceImpl implements PerformanceService {
      * 条件+分页查询演出
      */
     @Override
-    public PerformancePageResponseDTO queryPerformance(PerformanceQueryRequestDTO request) {
-        // 1. 构建分页参数
-        IPage<Performance> page = new Page<>(request.getPageNum(), request.getPageSize());
+    public PerformancePageResponseDTO queryPerformance(PerformanceQueryRequestDTO requestDTO,HttpServletRequest request) {
+        // 构建分页参数
+        IPage<Performance> page = new Page<>(requestDTO.getPageNum(), requestDTO.getPageSize());
 
-        // 2. 分页查询演出
-        String keyword = request.getKeyword();
-        Long cityId = request.getCityId();
-        Long categoryId = request.getCategoryId();
+        // 分页查询演出
+        String keyword = requestDTO.getKeyword() != null ? requestDTO.getKeyword().trim() : null;
+        Long cityId = requestDTO.getCityId() == null ? getCurrentCityId(request) : requestDTO.getCityId();
+        Long categoryId = requestDTO.getCategoryId();
 
+        // 构建查询条件
         LambdaQueryWrapper<Performance> queryWrapper = new LambdaQueryWrapper<Performance>()
-                // 精确匹配cityId
-                .eq(cityId != null,Performance::getCityId, cityId)
-                // 精确匹配categoryId
-                .eq(categoryId !=null,Performance::getCategoryId, categoryId);
+                .eq(Performance::getCityId, cityId)
+                //默认查四大类
+                .in(categoryId == null || categoryId <= 0, Performance::getCategoryId, 1, 2, 3, 4)
+                .eq(categoryId != null && categoryId > 0, Performance::getCategoryId, categoryId);
 
-        //处理keyword模糊查询
-        if (keyword != null && !keyword.trim().isEmpty()) {
+        // 处理keyword
+        if (keyword != null && !keyword.isEmpty()) {
             queryWrapper.and(wrapper -> wrapper
-                    // 模糊匹配演出名
                     .like(Performance::getName, keyword)
-                    // 或模糊匹配明星名
                     .or().like(Performance::getStar, keyword)
             );
         }
+
         IPage<Performance> performancePage = performanceMapper.selectPage(page, queryWrapper);
-        // 3. 转换为响应DTO
+        //转换为响应DTO
         List<Performance> performanceList = performancePage.getRecords();
         //空值校验：避免空指针
         if (performanceList == null || performanceList.isEmpty()) {
@@ -86,6 +88,9 @@ public class PerformanceServiceImpl implements PerformanceService {
                     dto.setCoverImage(performance.getCoverImage());
                     dto.setDescription(performance.getDescription());
                     dto.setStatus(performance.getStatus());
+                    //todo
+                    //没有去查询SessionDetailDTO
+
                     return dto;
                 })
                 .collect(Collectors.toList());

@@ -26,8 +26,11 @@ public enum ErrorCode {
 
     // ===================== 用户模块 =====================
     PERFORMANCE_IS_EMPTY(30001, "查询结果为空"),
-    PERFORMANCE_OPERATION_FAIL(30002, "演出表操作失败");
+    PERFORMANCE_OPERATION_FAIL(30002, "演出表操作失败"),
 
+
+    // ===================== 工具模块 =====================
+    IP_OPERATION_FAIL(90001, "ip处理失败");
 
 
 

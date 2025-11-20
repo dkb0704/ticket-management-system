@@ -10,7 +10,7 @@ import java.util.List;
 
 public interface PerformanceService {
     // 条件+分页查询演出
-    PerformancePageResponseDTO queryPerformance(PerformanceQueryRequestDTO request);
+    PerformancePageResponseDTO queryPerformance(PerformanceQueryRequestDTO requestDTO,HttpServletRequest request);
 
     // 获取演出详情（含场次、票档、库存状态）
     PerformanceDetailResponseDTO getPerformanceDetail(Long performanceId);
