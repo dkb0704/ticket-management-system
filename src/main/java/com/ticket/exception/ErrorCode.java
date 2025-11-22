@@ -16,6 +16,7 @@ public enum ErrorCode {
     USER_REGISTER_FAIL(10006, "用户注册失败，请重试"),
     USER_LOGGED_OUT(10007, "用户已登出，请重新登录"),
     USER_OPERATION_FAIL(10008, "用户表操作失败"),
+    NO_PERMISSION(10009, "非管理员账号无法操作"),
 
 
 

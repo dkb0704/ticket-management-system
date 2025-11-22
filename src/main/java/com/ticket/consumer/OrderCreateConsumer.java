@@ -44,7 +44,6 @@ public class OrderCreateConsumer {
             if (OrderStatusEnum.PENDING_PAY.getCode().equals(order.getStatus())
                     && LocalDateTime.now().isAfter(order.getExpireTime())) {
                 // 订单未支付且已过期，将订单设置为已取消
-                //todo
                 orderService.setOrderStatus(order.getId(), order.getUserId(), OrderStatusEnum.CANCELLED.getCode());
                 log.info("订单超时自动取消：{}", msg.getOrderNo());
             }

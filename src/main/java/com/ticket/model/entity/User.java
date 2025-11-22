@@ -18,6 +18,9 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User {
+    public static final Integer ROLE_ADMIN = 0; // 管理员角色
+    public static final Integer ROLE_USER = 1;  // 普通用户角色
+
     @TableId(type = IdType.AUTO)
     // 核心用户ID
     private Long id;
@@ -34,7 +37,7 @@ public class User {
     // 状态：1-正常，0-禁用
     private Integer status;
     // 默认普通用户
-    private Integer role = 1;
+    private Integer role = ROLE_USER;
     // 最后登录时间
     @TableField("last_login_time")
     private LocalDateTime lastLoginTime;
