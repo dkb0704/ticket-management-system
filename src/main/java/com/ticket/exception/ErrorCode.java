@@ -24,8 +24,9 @@ public enum ErrorCode {
     USER_NOT_FOUND(20001, "用户不存在"),
     ADDRESS_NOT_FOUND(20002, "收货地址不存在或不属于当前用户"),
     ADDRESS_OPERATION_FAIL(20003, "地址表操作失败"),
+    STATUS_OPERATION_FAIL(20004, "用户状态更新失败"),
 
-    // ===================== 用户模块 =====================
+    // ===================== 演出模块 =====================
     PERFORMANCE_IS_EMPTY(30001, "演出查询结果为空"),
     PERFORMANCE_OPERATION_FAIL(30002, "演出表操作失败"),
     PERFORMANCE_SESSION_IS_EMPTY(30003, "演出场次查询结果为空"),
@@ -37,7 +38,7 @@ public enum ErrorCode {
     TICKET_STOCK_INSUFFICIENT(30009, "票库存不足"),
     REPEAT_GRAB_TICKET(30010, "禁止重复购票"),
     GRAB_TICKET_FAIL_RETRY(30011, "购票失败，请重试"),
-    // ===================== 用户模块 =====================
+    // ===================== 订单模块 =====================
 
     ORDER_NOT_FOUND(40001, "订单不存在"),
     ORDER_STATUS_NOT_ALLOW_CANCEL(40002, "当前订单状态不允许取消"),

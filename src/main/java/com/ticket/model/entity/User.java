@@ -37,7 +37,7 @@ public class User {
     // 状态：1-正常，0-禁用
     private Integer status;
     // 默认普通用户
-    private Integer role = ROLE_USER;
+    private Integer role ;
     // 最后登录时间
     @TableField("last_login_time")
     private LocalDateTime lastLoginTime;

@@ -32,7 +32,7 @@ public class LoginInterceptor implements HandlerInterceptor {
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         try {
-            // 原逻辑：从请求头获取token
+            //从请求头获取token
             String token = request.getHeader("Authorization");
             if (token == null || token.isEmpty()) {
                 throw new BusinessException(ErrorCode.NOT_LOGIN);
@@ -69,10 +69,5 @@ public class LoginInterceptor implements HandlerInterceptor {
         return true;
     }
 
-    @Override
-    public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex) throws Exception {
-        // 清除ThreadLocal，避免内存泄漏
-        UserContext.removeUserId();
-    }
 }
 
