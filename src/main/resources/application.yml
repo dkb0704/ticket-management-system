@@ -14,3 +14,9 @@ spring:
     url: jdbc:mysql://localhost:3306/ticket?useUnicode=true&characterEncoding=UTF-8
     username: root
     password: dkb4sb!!
+logging:
+  level:
+    # 打印Mapper执行的SQL及参数
+    com.ticket.mapper: DEBUG
+    # 打印JDBC操作细节（可选）
+    org.apache.ibatis: DEBUG

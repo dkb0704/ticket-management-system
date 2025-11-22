@@ -13,7 +13,7 @@ public class OrderNoGeneratorUtils {
     public static String generate() {
         String time = LocalDateTime.now().format(DF);
         UUID uuid = UUID.randomUUID();
-        return time + uuid + "-" ;
+        return time + uuid ;
 
     }
 }

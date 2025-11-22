@@ -24,7 +24,7 @@ public class OrderController {
      */
     @GetMapping("/list")
     public Result<IPage<OrderListResponseDTO>> getUserOrderPage(
-            @Validated OrderQueryRequestDTO request
+            @Validated @RequestBody OrderQueryRequestDTO request
     ) {
         IPage<OrderListResponseDTO> page = orderService.getUserOrderPage(request);
         return Result.success(page);
@@ -35,7 +35,6 @@ public class OrderController {
      */
     @GetMapping("/{id}")
     public Result<OrderDetailResponseDTO> getOrderDetail(@PathVariable Long id) {
-        Long userId = UserContext.getCurrentUserId();
         OrderDetailResponseDTO detail = orderService.getOrderDetail(id);
         return Result.success(detail);
     }

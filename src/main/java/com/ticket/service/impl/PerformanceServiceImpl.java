@@ -278,8 +278,7 @@ public class PerformanceServiceImpl implements PerformanceService {
         order.setCreateTime(LocalDateTime.now());
         // 15分钟过期
         //todo 测试只设置为15秒
-//        order.setExpireTime(LocalDateTime.now().plusMinutes(15));
-        order.setExpireTime(LocalDateTime.now().plusSeconds(15));
+        order.setExpireTime(LocalDateTime.now().plusMinutes(15));
         return order;
     }
     /**
@@ -299,8 +298,7 @@ public class PerformanceServiceImpl implements PerformanceService {
                     msg,
                     message -> {
                         // 设置延迟时间（毫秒）
-//                        message.getMessageProperties().setHeader("x-delay", 15 * 60 * 1000);
-                        message.getMessageProperties().setHeader("x-delay", 15 * 1000);
+                        message.getMessageProperties().setHeader("x-delay", 15 * 60 * 1000);
                         return message;
                     },
                     new CorrelationData(order.getOrderNo()) // 消息ID，用于确认

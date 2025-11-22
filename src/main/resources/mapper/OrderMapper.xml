@@ -12,26 +12,29 @@
         o.grade_name,
         o.count,
         o.total_amount,
-        os.desc AS statusDesc,
+        os.status_desc AS statusDesc,
         o.create_time,
         o.expire_time
         FROM `order` o
         LEFT JOIN performance p ON o.performance_id = p.id
         LEFT JOIN performance_session s ON o.session_id = s.id
         LEFT JOIN (
-        SELECT 0 AS code, '待支付' AS desc UNION ALL
-        SELECT 1 AS code, '已支付' AS desc UNION ALL
-        SELECT 2 AS code, '已取消' AS desc UNION ALL
-        SELECT 3 AS code, '已完成' AS desc UNION ALL
-        SELECT 4 AS code, '已退款' AS desc
+        SELECT 0 AS code, '待支付' AS status_desc UNION ALL
+        SELECT 1 AS code, '已支付' AS status_desc UNION ALL
+        SELECT 2 AS code, '已取消' AS status_desc UNION ALL
+        SELECT 3 AS code, '已完成' AS status_desc UNION ALL
+        SELECT 4 AS code, '已退款' AS status_desc
         ) os ON o.status = os.code
-        WHERE o.user_id = #{@com.ticket.util.UserContext@getCurrentUserId()}
-        <if test="status != null">
+        WHERE o.user_id = ${@com.ticket.util.UserContext@getCurrentUserId()}
+        <!-- 确保status条件严格生效：即使status为0也能正确筛选 -->
+        <if test="status != null and status != ''">
             AND o.status = #{status}
         </if>
+        <!-- 仅按创建时间降序（此时结果已全部满足status条件） -->
         ORDER BY o.create_time DESC
     </select>
 
+    <!-- 查询订单详情 -->
     <!-- 查询订单详情 -->
     <select id="selectOrderDetail" resultType="com.ticket.model.dto.response.OrderDetailResponseDTO">
         SELECT
@@ -44,7 +47,7 @@
             o.price,
             o.count,
             o.total_amount,
-            os.desc AS statusDesc,
+            os.status_desc AS statusDesc,
             o.create_time,
             o.pay_time,
             o.cancel_time,
@@ -53,13 +56,13 @@
                  LEFT JOIN performance p ON o.performance_id = p.id
                  LEFT JOIN performance_session s ON o.session_id = s.id
                  LEFT JOIN (
-            SELECT 0 AS code, '待支付' AS desc UNION ALL
-            SELECT 1 AS code, '已支付' AS desc UNION ALL
-            SELECT 2 AS code, '已取消' AS desc UNION ALL
-            SELECT 3 AS code, '已完成' AS desc UNION ALL
-            SELECT 4 AS code, '已退款' AS desc
+            SELECT 0 AS code, '待支付' AS status_desc UNION ALL
+            SELECT 1 AS code, '已支付' AS status_desc UNION ALL
+            SELECT 2 AS code, '已取消' AS status_desc UNION ALL
+            SELECT 3 AS code, '已完成' AS status_desc UNION ALL
+            SELECT 4 AS code, '已退款' AS status_desc
         ) os ON o.status = os.code
-        WHERE o.id = #{id} AND o.user_id = #{@com.ticket.util.UserContext@getCurrentUserId()}
+        WHERE o.id = #{id}
+          AND o.user_id = ${@com.ticket.util.UserContext@getCurrentUserId()}
     </select>
-
 </mapper>

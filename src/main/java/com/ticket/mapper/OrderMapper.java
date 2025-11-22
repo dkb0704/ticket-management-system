@@ -19,6 +19,6 @@ public interface OrderMapper extends BaseMapper<Order> {
 
     // 查询订单详情（关联演出/场次表）
     OrderDetailResponseDTO selectOrderDetail(
-            @Param("userId") Long userId
+            @Param("id") Long id
     );
 }
