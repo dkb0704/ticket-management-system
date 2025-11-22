@@ -5,9 +5,12 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.ticket.config.RabbitMQConfig;
+import com.ticket.enums.OrderStatusEnum;
 import com.ticket.exception.BusinessException;
 import com.ticket.exception.ErrorCode;
 import com.ticket.mapper.*;
+import com.ticket.model.dto.msg.OrderCreateMsgDTO;
 import com.ticket.model.dto.request.GrabTicketRequestDTO;
 import com.ticket.model.dto.response.PerformanceDetailResponseDTO;
 import com.ticket.model.dto.response.PerformancePageResponseDTO;
@@ -17,15 +20,20 @@ import com.ticket.model.dto.response.TicketGradeDetailDTO;
 import com.ticket.model.entity.*;
 import com.ticket.service.PerformanceService;
 import com.ticket.util.IpUtils;
+import com.ticket.util.OrderNoGeneratorUtils;
 import com.ticket.util.RedisUtils;
 import com.ticket.util.UserContext;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.ibatis.annotations.Lang;
+import org.springframework.amqp.rabbit.connection.CorrelationData;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,7 +41,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+
+
 @Service
+@Slf4j
 public class PerformanceServiceImpl implements PerformanceService {
     @Resource
     private RegionMapper regionMapper;
@@ -46,14 +57,24 @@ public class PerformanceServiceImpl implements PerformanceService {
     @Resource
     private TicketGradeMapper ticketGradeMapper;
     @Resource
+    private OrderMapper orderMapper;
+    @Resource
     private RedisUtils redisUtils;
+    @Resource
+    private RabbitTemplate rabbitTemplate;
 
     private static final Integer MAX_GRAB_TICKET_COUNT = 5;
 
-    // Redis缓存键常量
-    private static final String REDIS_PERFORMANCE_STOCK_KEY = "performance:stock:"; // 票档库存缓存
-    private static final String REDIS_USER_GRAB_LIMIT_KEY = "performance:grab:limit:"; // 用户抢票限制
-    private static final String REDIS_GRAB_LOCK_KEY = "performance:grab:lock:"; // 抢票分布式锁
+    // 票档库存缓存
+    private static final String REDIS_PERFORMANCE_STOCK_KEY = "performance:stock:";
+    // 用户抢票限制
+    private static final String REDIS_USER_GRAB_LIMIT_KEY = "performance:grab:limit:";
+    // 抢票分布式锁
+    private static final String REDIS_GRAB_LOCK_KEY = "performance:grab:lock:";
+
+    // RabbitMQ交换机/队列名
+    private static final String ORDER_EXCHANGE = "order.direct";
+    private static final String ORDER_ROUTING_KEY = "order.create";
 
     /**
      * 条件+分页查询演出
@@ -224,15 +245,71 @@ public class PerformanceServiceImpl implements PerformanceService {
             //  设置抢票限制
             redisUtils.set(limitKey, "1", 30, java.util.concurrent.TimeUnit.MINUTES);
 
-            //todo
-            // 创建订单（通过RabbitMQ异步处理，此处省略，后续订单模块实现）
+            // 生成订单
+            Order order = buildOrder(request, userId, ticketGrade);
+            orderMapper.insert(order);
 
+            // 6. 发送RabbitMQ消息（订单创建成功后，用于超时取消、通知用户等）
+            sendOrderCreateMsg(order);
 
         } finally {
             // 释放分布式锁
             redisUtils.unlock(lockKey);
         }
     }
+
+    /**
+     * 构建订单实体
+     */
+    private Order buildOrder(GrabTicketRequestDTO request, Long userId, TicketGrade grade) {
+        Order order = new Order();
+        // 生成唯一订单号
+        order.setOrderNo(OrderNoGeneratorUtils.generate());
+        order.setUserId(userId);
+        order.setPerformanceId(request.getPerformanceId());
+        order.setSessionId(request.getSessionId());
+        order.setTicketGradeId(request.getTicketGradeId());
+        order.setGradeName(grade.getGradeName());
+        order.setPrice(grade.getPrice());
+        order.setCount(request.getCount());
+        order.setTotalAmount(grade.getPrice().multiply(new BigDecimal(request.getCount())));
+        // 待支付
+        order.setStatus(OrderStatusEnum.PENDING_PAY.getCode());
+        order.setCreateTime(LocalDateTime.now());
+        // 15分钟过期
+        //todo 测试只设置为15秒
+//        order.setExpireTime(LocalDateTime.now().plusMinutes(15));
+        order.setExpireTime(LocalDateTime.now().plusSeconds(15));
+        return order;
+    }
+    /**
+     * 发送订单创建消息到RabbitMQ
+     */
+    private void sendOrderCreateMsg(Order order) {
+        try {
+            OrderCreateMsgDTO msg = new OrderCreateMsgDTO();
+            msg.setOrderId(order.getId());
+            msg.setOrderNo(order.getOrderNo());
+            msg.setExpireTime(order.getExpireTime()); // 订单过期时间（用于二次校验）
+
+            // 发送延迟消息：指定延迟时间为15分钟
+            rabbitTemplate.convertAndSend(
+                    RabbitMQConfig.ORDER_DELAY_EXCHANGE,
+                    RabbitMQConfig.ORDER_DELAY_ROUTING_KEY,
+                    msg,
+                    message -> {
+                        // 设置延迟时间（毫秒）
+//                        message.getMessageProperties().setHeader("x-delay", 15 * 60 * 1000);
+                        message.getMessageProperties().setHeader("x-delay", 15 * 1000);
+                        return message;
+                    },
+                    new CorrelationData(order.getOrderNo()) // 消息ID，用于确认
+            );
+        } catch (Exception e) {
+            log.error("发送延迟订单消息失败：{}", e.getMessage());
+        }
+    }
+
     /**
      * 获取当前用户所在城市ID
      */

@@ -99,6 +99,11 @@
             <version>5.7.1</version>
         </dependency>
 
+        <!-- RabbitMQ核心依赖（Spring Boot Starter） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-amqp</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

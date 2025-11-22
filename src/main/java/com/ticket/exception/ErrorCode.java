@@ -36,8 +36,13 @@ public enum ErrorCode {
     TICKET_STOCK_INSUFFICIENT(30009, "票库存不足"),
     REPEAT_GRAB_TICKET(30010, "禁止重复购票"),
     GRAB_TICKET_FAIL_RETRY(30011, "购票失败，请重试"),
+    // ===================== 用户模块 =====================
 
-
+    ORDER_NOT_FOUND(40001, "订单不存在"),
+    ORDER_STATUS_NOT_ALLOW_CANCEL(40002, "当前订单状态不允许取消"),
+    ORDER_HAS_EXPIRED(40003, "订单已过期"),
+    ORDER_OPERATE_FAIL(40004, "订单操作失败"),
+    STOCK_OPERATE_FAIL(40005, "库存操作失败，订单取消失败"),
 
     // ===================== 工具模块 =====================
     IP_OPERATION_FAIL(90001, "ip处理失败");

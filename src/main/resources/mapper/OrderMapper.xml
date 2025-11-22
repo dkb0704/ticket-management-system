@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ticket.mapper.OrderMapper">
+
+    <!-- 分页查询用户订单 -->
+    <select id="selectUserOrderPage" resultType="com.ticket.model.dto.response.OrderListResponseDTO">
+        SELECT
+        o.id,
+        o.order_no,
+        p.name AS performanceName,
+        DATE_FORMAT(s.session_time, '%Y-%m-%d %H:%i') AS sessionTime,
+        o.grade_name,
+        o.count,
+        o.total_amount,
+        os.desc AS statusDesc,
+        o.create_time,
+        o.expire_time
+        FROM `order` o
+        LEFT JOIN performance p ON o.performance_id = p.id
+        LEFT JOIN performance_session s ON o.session_id = s.id
+        LEFT JOIN (
+        SELECT 0 AS code, '待支付' AS desc UNION ALL
+        SELECT 1 AS code, '已支付' AS desc UNION ALL
+        SELECT 2 AS code, '已取消' AS desc UNION ALL
+        SELECT 3 AS code, '已完成' AS desc UNION ALL
+        SELECT 4 AS code, '已退款' AS desc
+        ) os ON o.status = os.code
+        WHERE o.user_id = #{@com.ticket.util.UserContext@getCurrentUserId()}
+        <if test="status != null">
+            AND o.status = #{status}
+        </if>
+        ORDER BY o.create_time DESC
+    </select>
+
+    <!-- 查询订单详情 -->
+    <select id="selectOrderDetail" resultType="com.ticket.model.dto.response.OrderDetailResponseDTO">
+        SELECT
+            o.id,
+            o.order_no,
+            p.name AS performanceName,
+            p.venue AS performanceVenue,
+            DATE_FORMAT(s.session_time, '%Y-%m-%d %H:%i') AS sessionTime,
+            o.grade_name,
+            o.price,
+            o.count,
+            o.total_amount,
+            os.desc AS statusDesc,
+            o.create_time,
+            o.pay_time,
+            o.cancel_time,
+            o.expire_time
+        FROM `order` o
+                 LEFT JOIN performance p ON o.performance_id = p.id
+                 LEFT JOIN performance_session s ON o.session_id = s.id
+                 LEFT JOIN (
+            SELECT 0 AS code, '待支付' AS desc UNION ALL
+            SELECT 1 AS code, '已支付' AS desc UNION ALL
+            SELECT 2 AS code, '已取消' AS desc UNION ALL
+            SELECT 3 AS code, '已完成' AS desc UNION ALL
+            SELECT 4 AS code, '已退款' AS desc
+        ) os ON o.status = os.code
+        WHERE o.id = #{id} AND o.user_id = #{@com.ticket.util.UserContext@getCurrentUserId()}
+    </select>
+
+</mapper>

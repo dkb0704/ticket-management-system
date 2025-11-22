@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ticket.mapper.TicketGradeMapper">
+    <!-- 带乐观锁的库存增加 -->
+    <update id="incrStockWithVersion">
+        UPDATE ticket_grade
+        SET remaining_stock = remaining_stock + #{count},
+        version = version + 1
+        WHERE id = #{ticketGradeId}
+        AND version = #{version}
+    </update>
+
+</mapper>
